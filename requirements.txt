@@ -1,0 +1,51 @@
+# ChatBot with LM Studio - Main Dependencies
+
+# Core FastAPI
+fastapi
+uvicorn[standard]
+python-multipart
+python-dotenv
+
+# Database
+sqlalchemy[asyncio]
+alembic
+pydantic
+
+# Document Processing & RAG (basic PDF upload without ML)
+PyMuPDF
+pdfplumber
+tiktoken
+
+# HTTP Client
+aiohttp
+httpx
+
+# Utilities
+loguru
+tqdm
+numpy
+pandas
+
+# Development Tools
+ruff
+black
+mypy
+pre-commit
+bandit
+radon
+
+# Testing
+pytest
+pytest-asyncio
+pytest-cov
+
+# Optional dependencies for enhanced features
+openpyxl  # For Excel support
+python-docx  # For Word documents
+beautifulsoup4  # For HTML processing
+# Optional OCR support (image-only PDFs)
+pdf2image
+pytesseract
+# System dependencies required:
+# - poppler (set POPPLER_PATH on Windows)
+# - tesseract-ocr (ensure binary in PATH)

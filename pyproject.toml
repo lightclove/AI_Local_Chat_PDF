@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+include = "\\.pyi?$"
+extend-exclude = '''
+(
+  ^data/
+| ^__pycache__/
+| ^venv/
+| ^env/
+)
+'''
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+extend-exclude = ["data", "__pycache__", "venv", "env"]
+
+[tool.ruff.lint]
+select = [
+  "E", "F", "I",
+  "UP",
+  "B",
+  "S",
+  "C90",
+]
+ignore = ["E501"]
+per-file-ignores = {"__init__.py" = ["F401"], "tests/**.py" = ["S101", "F841", "B017"], "db_diagnostics.py" = ["C901"], "migrate.py" = ["C901"]}
+
+[tool.ruff.lint.isort]
+known-first-party = ["AI_Docs_Generator"]
+combine-as-imports = true
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+strict_optional = true
+exclude = "(data/|__pycache__/|venv/|env/)"
+
+[tool.pytest.ini_options]
+addopts = "-ra -q"
+testpaths = ["tests"]
+filterwarnings = [
+  "ignore::DeprecationWarning",
+]
+
+[tool.bandit]
+exclude_dirs = ["tests", "data", "__pycache__", "venv", "env"]
+skips = ["B101", "B601"]
+
+[tool.radon]
+exclude = ["tests", "data", "__pycache__", "venv", "env"]
+cc_min = "B"
+show_complexity = true
+average = true

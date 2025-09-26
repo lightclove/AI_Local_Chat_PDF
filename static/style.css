@@ -1,0 +1,676 @@
+/* ChatBot CSS Styles
+Стили для ChatBot с LM Studio
+
+    Макет: фиксированный сайдбар слева + основная область чата.
+    Цвета и скроллбары настроены в style.css.
+    Логика UI и API-запросы находятся в script.js.
+    Стили для ChatBot с LM Studio.
+    Макет: фиксированный сайдбар слева + основная область чата.
+    Цвета и скроллбары настроены в style.css.
+    Логика UI и API-запросы находятся в script.js.
+
+*/
+/* Переменные для цветов и стилей и анимаций*/
+:root {
+    --primary: #007bff;
+    --primary-dark: #0056b3;
+    --accent: #28a745;
+    --warning: #dc3545;
+    --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --text-light: #fff;
+    --text-dark: #333;
+    --shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/*
+  Глобальные сбросы/нормализация:
+  - Убираем внешние отступы, задаём box-sizing, чтобы размеры блоков были предсказуемы
+*/
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/*
+  Корневой контейнер страницы:
+  - Флексовая раскладка, градиентный фон, скрываем общий скролл
+*/
+body {
+    display: flex;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: var(--bg-gradient);
+    min-height: 100vh;
+}
+
+/*
+  Общий контейнер приложения:
+  - Две колонки: фиксированная сайдбар и основная область
+*/
+.container {
+    flex: 1;
+    display: flex;
+    max-width: none;
+    height: 100vh;
+    margin: 0;
+    gap: 0;
+}
+
+/*
+  Сайдбар со списком чатов, загрузкой и выбором модели:
+  - Фиксируем слева, даём тень и скругления
+*/
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 280px;
+    z-index: 10;
+    overflow-y: auto;
+    border-right: 1px solid #ddd;
+    background: linear-gradient(180deg, #fff 0%, #f8f9fa 100%);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    border-radius: 0 12px 12px 0;
+}
+
+/*
+  Основная рабочая область (чат и поле ввода)
+*/
+.main-content {
+    flex: 1;
+    margin-left: 280px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: linear-gradient(180deg, #fff 0%, #fafafa 100%);
+    box-shadow: var(--shadow);
+    padding: 20px;
+}
+
+/*
+  Контейнер сообщений:
+  - Вертикальная прокрутка, занимает всё доступное пространство
+*/
+.chat-container {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    margin-bottom: 0;
+    position: relative;
+}
+
+/*
+  Синтетические «верхние» скроллбары:
+  - Позволяют скроллить горизонтально список чатов и контейнер
+*/
+.chat-list-scrollbar-top,
+.chat-container-scrollbar-top {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    overflow-x: auto;
+    overflow-y: hidden;
+    height: 12px;
+    background: white;
+}
+/* Верхняя полоса прокрутки списка чатов */
+.chat-list-scrollbar-top .spacer,
+.chat-container-scrollbar-top .spacer {
+    height: 1px;
+    width: 100%;
+}
+
+/*
+  Стилизация верхних скроллбаров (WebKit)
+*/
+.chat-list-scrollbar-top::-webkit-scrollbar,
+.chat-container-scrollbar-top::-webkit-scrollbar {
+    height: 12px;
+    background: #f1f1f1;
+}
+
+.chat-list-scrollbar-top::-webkit-scrollbar-thumb,
+.chat-container-scrollbar-top::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 6px;
+}
+
+.chat-list-scrollbar-top::-webkit-scrollbar-thumb:hover,
+.chat-container-scrollbar-top::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/*
+  Нижние скроллбары (для симметрии и удобства)
+*/
+.chat-list-scrollbar-bottom,
+.chat-container-scrollbar-bottom {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    overflow-x: auto;
+    overflow-y: hidden;
+    height: 12px;
+    background: white;
+}
+
+.chat-list-scrollbar-bottom .spacer,
+.chat-container-scrollbar-bottom .spacer {
+    height: 1px;
+    width: 100%;
+}
+
+.chat-list-scrollbar-bottom::-webkit-scrollbar,
+.chat-container-scrollbar-bottom::-webkit-scrollbar {
+    height: 12px;
+    background: #f1f1f1;
+}
+
+.chat-list-scrollbar-bottom::-webkit-scrollbar-thumb,
+.chat-container-scrollbar-bottom::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 6px;
+}
+
+.chat-list-scrollbar-bottom::-webkit-scrollbar-thumb:hover,
+.chat-container-scrollbar-bottom::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/*
+  Принудительно показываем скроллбары в разных контейнерах
+  (Firefox: scrollbar-width, WebKit: display:block)
+*/
+/* Force scrollbar visibility */
+.chat-list-scrollbar-top,
+.chat-list-scrollbar-bottom,
+.chat-container-scrollbar-top,
+.chat-container-scrollbar-bottom,
+.chat-container,
+.chat-list {
+    scrollbar-width: thin; /* Firefox force visible */
+}
+
+.chat-list-scrollbar-top::-webkit-scrollbar,
+.chat-list-scrollbar-bottom::-webkit-scrollbar,
+.chat-container-scrollbar-top::-webkit-scrollbar,
+.chat-container-scrollbar-bottom::-webkit-scrollbar,
+.chat-container::-webkit-scrollbar,
+.chat-list::-webkit-scrollbar {
+    display: block !important; /* Force in WebKit */
+}
+
+/*
+  Сообщения чата: общий стиль + отступ под псевдолейбл (You/AI)
+*/
+.message {
+    margin-bottom: 15px;
+    padding: 0 16px;
+    max-width: 80%;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    word-break: break-word;
+    display: block;
+    position: relative;
+    padding-left: 70px;
+    background: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+@keyframes slideIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/*
+  Сообщение пользователя (синяя капсула, отключена пока)
+*/
+.user-message {
+    color: #007bff;
+    margin-left: 0 !important; /* переопределяем любой авто-отступ */
+}
+
+.user-message::before {
+    content: "Вы:";
+    left: 0;
+    color: #007bff;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.user-message::before,
+.assistant-message::before {
+    position: absolute;
+    top: 0;
+    font-weight: bold;
+    font-size: 14px;
+    width: 60px; /* увеличен для выравнивания без перекрытия */
+    text-align: right;
+}
+
+/*
+  Сообщение ассистента (белая карточка с акцентной полоской)
+*/
+.assistant-message {
+    color: #333;
+    margin-left: 0 !important;
+}
+
+.assistant-message::before {
+    content: "ИИ:";
+    left: 0;
+    color: #666;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/*
+  Область ввода сообщения: закрепляем снизу, чтобы всегда была видна
+*/
+.input-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    position: sticky; /* закрепляем снизу, чтобы всегда была видна */
+    bottom: 0;
+    background: white;
+    padding-top: 12px;
+    z-index: 5;
+}
+/* Поле ввода сообщения */
+.input-container input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid #ddd;
+    border-radius: 25px;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.input-container input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+/* Кнопка отправки сообщения  */
+.input-container button {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+.input-container button:hover {
+    filter: brightness(1.1);
+}
+/* Кнопка отправки сообщения при неактивности */
+.input-container button:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+}
+
+/*
+  Элемент списка чатов (состояния hover/active) для выбора чата
+*/
+.chat-item {
+    padding: 12px;
+    margin-bottom: 10px;
+    background: linear-gradient(90deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 2px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+/* Элемент списка чатов при наведении */
+.chat-item:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 12px rgba(0,123,255,0.2);
+}
+/* Элемент списка чатов при активном выборе */
+.chat-item.active {
+    background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: var(--text-light) !important;
+    border: none !important;
+}
+/* Заголовок элемента списка чатов */
+.chat-item .title {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* Действия элемента списка чатов */
+.chat-item .actions {
+    display: flex;
+    gap: 6px;
+}
+/* Кнопка действия элемента списка чатов */
+.icon-btn {
+    background: transparent;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+}
+/* Кнопка действия элемента списка чатов при наведении */
+.icon-btn:hover {
+    background: rgba(0,0,0,0.06);
+}
+
+/*
+  Контейнер списка чатов как колонка, с доп. отступами до/после
+*/
+.chat-list {
+    /* show horizontal scroll at top and bottom */
+    overflow-y: auto;
+    overflow-x: auto;
+    display: flex;
+    flex-direction: column;
+}
+/* Добавляем отступы до/после списка чатов */
+.chat-list::before,
+.chat-list::after {
+    content: '';
+    height: 8px;
+}
+
+.chat-list-scrollbar {
+    height: 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+/* Добавляем отступы до/после списка чатов */
+.chat-list-scrollbar .spacer {
+    height: 1px;
+}
+/* Заголовок списка чатов */
+.sidebar h3 {
+    margin-bottom: 15px;
+    color: #333;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/*
+  Блок загрузки PDF: скрытый input и кликабельная label-кнопка
+*/
+.file-upload {
+    margin-bottom: 20px;
+}
+/* Скрытый input для загрузки PDF */
+.file-upload input[type="file"] {
+    display: none;
+}
+/* Кнопка загрузки PDF */
+.file-upload label {
+    display: block;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, var(--accent) 0%, #218838 100%);
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: center;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+/* Кнопка загрузки PDF при наведении */
+.file-upload label:hover {
+    filter: brightness(1.1);
+}
+
+/*
+  Индикатор загрузки с анимацией многоточия
+*/
+.loading {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+    font-style: italic;
+}
+/* Многоточие в индикаторе загрузки */
+.loading::after {
+    content: '...';
+    animation: dots 1.5s steps(4, end) infinite;
+}
+/* Анимация многоточия в индикаторе загрузки */
+@keyframes dots {
+    0%, 20% { content: ''; }
+    40% { content: '.'; }
+    60% { content: '..'; }
+    80%, 100% { content: '...'; }
+}
+
+/*
+  Адаптивность: на узких экранах меняем порядок блоков и ширину сообщений
+*/
+/* Responsive design */
+@media (max-width: 768px) {
+    .container {
+        max-width: 100%;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        grid-template-areas: initial;
+    }
+    /* Сайдбар при узких экранах */
+    .sidebar {
+        order: 2;
+    }
+    /* Основная область при узких экранах */
+    .main-content {
+        order: 1;
+    }
+    /* Сообщение при узких экранах */
+    .message {
+        max-width: 90%;
+    }
+}
+
+/*
+  Общая стилизация скроллбаров (WebKit) и узкая полоса в чате
+*/
+/*Стилизация скроллбаров*/
+::-webkit-scrollbar {
+    width: 8px;
+}
+/* Скроллбар при узких экранах */
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+/* */
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+/* */
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+/* Вертикальная полоса прокрутки в чате */
+.chat-container::-webkit-scrollbar {
+    width: 6px;
+}
+/* Прозрачный фон скроллбара */
+.chat-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+/* Фон скроллбара */
+.chat-container::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 3px;
+}
+
+/*
+  Плавное появление сообщений в чате
+*/
+/* Анимации */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Список документов (если есть) стили */
+.doc-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+/* Название документа для списка документов */
+.doc-item .name {
+    flex: 1;
+    color: var(--primary);
+}
+
+/* Документ при наведении для удаления*/
+.doc-item .delete {
+    color: var(--warning);
+    cursor: pointer;
+}
+.doc-item .delete:hover {
+    color: #c82333;
+}
+
+/*
+  Индикаторы статуса (на будущее): online/offline для приложения LM Studio
+*/
+/*Индикаторы статуса*/
+.status-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+/* Индикатор статуса при онлайне */
+.status-online {
+    background: #28a745;
+    animation: pulse 2s infinite;
+}
+
+/* Индикатор статуса при оффлайне */
+.status-offline {
+    background: #dc3545;
+}
+
+/* Индикатор статуса при онлайне */
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/*
+  Усиленная видимость верхнего скроллбара списка чатов
+*/
+/* Верхняя полоса прокрутки списка чатов */
+.chat-list-scrollbar-top,
+.chat-list {
+    overflow-x: auto;
+    scrollbar-width: thin; /* Firefox */
+}
+
+/* Верхняя полоса прокрутки при наведении */
+.chat-list-scrollbar-top::-webkit-scrollbar,
+.chat-list::-webkit-scrollbar {
+    height: 12px; /* force visibility */
+    background: #f1f1f1;
+}
+/* Фон скроллбара */
+.chat-list-scrollbar-top::-webkit-scrollbar-thumb,
+.chat-list::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 6px;
+}
+/* Верхняя полоса прокрутки при наведении */
+.chat-list-scrollbar-top::-webkit-scrollbar-thumb:hover,
+.chat-list::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Верхняя полоса прокрутки всегда видна если контент переполняет контейнер чата и списка чатов в рамках страницы */
+.chat-list-scrollbar-top {
+    margin-bottom: 4px;
+}
+
+/*
+  Стили выбора модели (селект): фокус/hover для выбора модели из списка моделей с API /api/models
+*/
+.model-select select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #f8f9fa;
+    font-size: 16px;
+    cursor: pointer;
+    appearance: none;
+    transition: border-color 0.3s ease;
+}
+/* Селект модели при фокусе для выбора модели из списка моделей с API /api/models  */
+.model-select select:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+}
+/* Селект модели при наведении */
+.model-select select:hover {
+    filter: brightness(1.1);
+    border-color: #007bff;
+}
+
+/* Все сообщения начинаются слева для пользователя и ИИ  */
+.user-message,
+.assistant-message {
+    margin-left: 0 !important;
+}
+
+/* Все сообщения начинаются после лейблов */
+.message {
+    padding-left: 70px;
+}
+
+/* Время отправки и мыслительного процесса ИИ */
+.message-time {
+    display: block;
+    font-size: 12px;
+    color: #999;
+    margin-top: 4px;
+    text-align: right;
+}
+/* Время мыслительного процесса ИИ  */
+.thinking-time {
+    font-size: 12px;
+    color: #999;
+    font-style: italic;
+    margin-left: 8px;
+}
+
+/* Линия после каждого сообщения для разделения сообщений в чате для разделения реплик и распознавания фраз пользователя и ИИ */
+.message::after {
+    content: '';
+    display: block;
+    border-bottom: 1px solid #eee;
+    margin-top: 10px;
+    margin-bottom: 5px;
+}

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatBot с LM Studio</title>
+    <!--
+        Подключение стилей UI. Макет: фиксированный сайдбар слева + основная область чата.
+        Цвета и скроллбары настроены в style.css.
+    -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!--
+        Главный контейнер приложения. Состоит из двух частей:
+        1) .sidebar — список чатов, загрузка PDF, выбор модели
+        2) .main-content — область переписки и поле ввода
+    -->
+    <div class="container">
+        <div class="sidebar">
+            <!-- Заголовок блока "Список чатов" с кнопкой создания нового чата -->
+            <h3 style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                <span>Список чатов</span>
+                <button id="new-chat-btn" title="Новый чат" style="padding:6px 10px;border-radius:8px;border:none;background:#007bff;color:#fff;cursor:pointer;">+ Новый</button>
+            </h3>
+            <!-- Блок загрузки PDF. Скрытый input + видимая label-кнопка -->
+            <div class="file-upload">
+                <label for="pdf-upload">Загрузить PDF</label>
+                <input type="file" id="pdf-upload" accept=".pdf">
+            </div>
+            <!-- Выпадающий список выбора модели, заполняется динамически из /api/models -->
+            <div class="model-select" style="margin-top:10px;">
+                <select id="model-select" title="Модель"></select>
+            </div>
+            <!-- Верхняя полоска прокрутки для списка чатов (синхронизируется в script.js) -->
+            <div id="chat-list-scrollbar-top" class="chat-list-scrollbar"><div class="spacer"></div></div>
+            <!-- Список чатов. Элементы добавляются в script.js -->
+            <div id="chat-list" class="chat-list">
+                <div class="loading">Загрузка чатов</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Контейнер сообщений. Сообщения добавляются динамически из script.js -->
+            <div class="chat-container" id="chat-container">
+                <div class="loading">Выберите чат или создайте новый</div>
+            </div>
+            <!-- Область ввода сообщения. Кнопка активна только при наличии текста и выбранном чате -->
+            <div class="input-container">
+                <input type="text" id="message-input" placeholder="Введите сообщение..." disabled>
+                <button id="send-button" onclick="sendMessage()" disabled>Отправить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Логика UI и API-запросы находятся в script.js -->
+    <script src="/static/script.js"></script>
+</body>
+</html>

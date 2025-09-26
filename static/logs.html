@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Просмотр лог файлов - ChatBot</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border-radius: 0;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #0056b3;
+            flex-shrink: 0;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-1px);
+        }
+
+        .controls {
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            padding: 16px 24px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+        }
+
+        .controls select, .controls input {
+            padding: 10px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            background: white;
+            font-size: 14px;
+            min-width: 150px;
+        }
+
+        .controls button {
+            padding: 10px 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            min-width: 80px;
+        }
+
+        .controls button:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+
+        .controls button.refresh {
+            background: #28a745;
+        }
+
+        .controls button.refresh:hover {
+            background: #1e7e34;
+        }
+
+        .controls button.clear {
+            background: #dc3545;
+        }
+
+        .controls button.clear:hover {
+            background: #c82333;
+        }
+
+        .stats {
+            background: #e9ecef;
+            padding: 12px 24px;
+            border-bottom: 1px solid #dee2e6;
+            font-size: 13px;
+            color: #495057;
+            flex-shrink: 0;
+        }
+
+        .log-content {
+            flex: 1;
+            padding: 0;
+            overflow: auto;
+            background: #1a1a1a;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #f8f9fa;
+        }
+
+        .log-wrapper {
+            padding: 20px;
+            height: 100%;
+            overflow: auto;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+            font-size: 16px;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 16px 20px;
+            border-radius: 6px;
+            border: 1px solid #f5c6cb;
+            margin: 20px;
+            font-size: 14px;
+        }
+
+        .log-line {
+            padding: 4px 0;
+            border-bottom: 1px solid #2d2d2d;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .log-line:hover {
+            background: #2a2a2a;
+        }
+
+        .log-timestamp {
+            color: #6c757d;
+            font-weight: 500;
+            min-width: 150px;
+            flex-shrink: 0;
+        }
+
+        .log-level-DEBUG {
+            color: #6c757d;
+            font-weight: bold;
+        }
+
+        .log-level-INFO {
+            color: #17a2b8;
+            font-weight: bold;
+        }
+
+        .log-level-WARNING {
+            color: #ffc107;
+            font-weight: bold;
+        }
+
+        .log-level-ERROR {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .log-message {
+            margin-left: 12px;
+            word-break: break-word;
+        }
+
+        .traceback {
+            background: #2d2d2d;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin: 8px 0;
+            font-family: monospace;
+            color: #ffc107;
+            border-radius: 0 4px 4px 0;
+            overflow-x: auto;
+        }
+
+        .traceback-header {
+            color: #ffc107;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .traceback-content {
+            color: #f8f9fa;
+            line-height: 1.4;
+        }
+
+        .controls-group {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .controls-group label {
+            font-size: 13px;
+            color: #495057;
+            font-weight: 500;
+        }
+
+        .controls-group select, .controls-group input {
+            min-width: 120px;
+        }
+
+        @media (max-width: 1024px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+
+            .controls-group {
+                justify-content: space-between;
+            }
+
+            .controls-group select, .controls-group input {
+                min-width: 140px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 0;
+            }
+
+            .container {
+                border-radius: 0;
+                margin: 0;
+            }
+
+            .controls-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .controls-group select, .controls-group input {
+                min-width: auto;
+            }
+
+            .header h1 {
+                font-size: 20px;
+            }
+
+            .log-content {
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Просмотр лог файлов</h1>
+            <a href="/" class="back-btn">← Вернуться к чату</a>
+        </div>
+
+        <div class="controls">
+            <div class="controls-group">
+                <label for="log-file-select">Файл:</label>
+                <select id="log-file-select">
+                    <option value="">Загрузка списка файлов...</option>
+                </select>
+            </div>
+
+            <div class="controls-group">
+                <label for="log-level-select">Уровень:</label>
+                <select id="log-level-select">
+                    <option value="">Все уровни</option>
+                    <option value="DEBUG">DEBUG</option>
+                    <option value="INFO">INFO</option>
+                    <option value="WARNING">WARNING</option>
+                    <option value="ERROR">ERROR</option>
+                </select>
+            </div>
+
+            <div class="controls-group">
+                <label for="log-lines-input">Строки:</label>
+                <input type="number" id="log-lines-input" value="100" min="10" max="1000">
+            </div>
+
+            <button onclick="loadLogs()" class="refresh">🔄 Обновить</button>
+            <button onclick="clearLogs()" class="clear">🗑️ Очистить</button>
+        </div>
+
+        <div class="stats" id="stats" style="display: none;">
+            📁 Файл: <span id="stats-filename"></span> |
+            📊 Всего строк: <span id="stats-total"></span> |
+            👁️ Отображено: <span id="stats-returned"></span> |
+            💾 Размер: <span id="stats-size"></span>
+        </div>
+
+        <div class="log-content" id="log-content">
+            <div class="log-wrapper">
+                <div class="loading">Выберите лог файл для просмотра...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentLogs = [];
+        let autoRefresh = null;
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            loadLogFilesList();
+            loadLogs();
+
+            // Автообновление каждые 30 секунд
+            autoRefresh = setInterval(() => {
+                if (document.getElementById('log-file-select').value) {
+                    loadLogs();
+                }
+            }, 30000);
+        });
+
+        // Очистка при закрытии страницы
+        window.addEventListener('beforeunload', function() {
+            if (autoRefresh) {
+                clearInterval(autoRefresh);
+            }
+        });
+
+        async function loadLogFilesList() {
+            try {
+                const response = await fetch('/api/logs/files');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                const select = document.getElementById('log-file-select');
+
+                select.innerHTML = '<option value="">Выберите лог файл...</option>';
+                data.logs.forEach(log => {
+                    const option = document.createElement('option');
+                    option.value = log.filename;
+                    option.textContent = `${log.filename} (${Math.round(log.size/1024)}KB)`;
+                    select.appendChild(option);
+                });
+
+                // Выбираем первый файл по умолчанию
+                if (data.logs.length > 0) {
+                    select.value = 'backend.log';
+                }
+
+            } catch (e) {
+                showError('Ошибка загрузки списка файлов: ' + e.message);
+            }
+        }
+
+        async function loadLogs() {
+            try {
+                const filename = document.getElementById('log-file-select').value;
+                const level = document.getElementById('log-level-select').value;
+                const lines = document.getElementById('log-lines-input').value;
+
+                if (!filename) {
+                    showLogs('Выберите лог файл для просмотра...');
+                    return;
+                }
+
+                const params = new URLSearchParams();
+                params.set('lines', lines);
+                if (level) params.set('level', level);
+
+                const response = await fetch(`/api/logs/${filename}?${params}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                showLogs(data.content || 'Лог файл пуст');
+
+                // Показываем статистику
+                updateStats(data);
+
+            } catch (e) {
+                showError('Ошибка загрузки логов: ' + e.message);
+            }
+        }
+
+        function showLogs(content) {
+            const logWrapper = document.querySelector('.log-wrapper');
+            logWrapper.innerHTML = '';
+
+            if (!content || content.trim() === '') {
+                logWrapper.innerHTML = '<div class="loading">Лог файл пуст</div>';
+                return;
+            }
+
+            const lines = content.split('\n');
+            let currentTraceback = null;
+
+            lines.forEach((line, index) => {
+                if (line.trim()) {
+                    // Проверяем, является ли это началом traceback
+                    if (line.includes('Traceback (most recent call last):')) {
+                        if (currentTraceback) {
+                            logWrapper.appendChild(currentTraceback);
+                        }
+
+                        currentTraceback = document.createElement('div');
+                        currentTraceback.className = 'traceback';
+
+                        const tracebackContent = document.createElement('div');
+                        tracebackContent.className = 'traceback-content';
+
+                        let tracebackLines = [];
+
+                        // Собираем весь traceback
+                        for (let i = index; i < lines.length; i++) {
+                            const currentLine = lines[i];
+                            if (currentLine.trim() && !currentLine.includes('Traceback (most recent call last):')) {
+                                tracebackLines.push(currentLine);
+                            } else if (i > index && currentLine.trim()) {
+                                break; // Конец текущего traceback
+                            }
+                        }
+
+                        tracebackContent.textContent = tracebackLines.join('\n');
+                        currentTraceback.appendChild(tracebackContent);
+
+                    } else if (currentTraceback) {
+                        // Продолжаем текущий traceback
+                        const tracebackContent = currentTraceback.querySelector('.traceback-content');
+                        tracebackContent.textContent += '\n' + line;
+                    } else {
+                        // Обычная строка лога
+                        const lineDiv = document.createElement('div');
+                        lineDiv.className = 'log-line';
+
+                        // Определяем уровень логирования
+                        let levelClass = '';
+                        if (line.includes(' | DEBUG')) levelClass = 'log-level-DEBUG';
+                        else if (line.includes(' | INFO')) levelClass = 'log-level-INFO';
+                        else if (line.includes(' | WARNING')) levelClass = 'log-level-WARNING';
+                        else if (line.includes(' | ERROR')) levelClass = 'log-level-ERROR';
+
+                        lineDiv.innerHTML = `<span class="log-timestamp">${line.substring(0, 23)}</span><span class="log-message"><span class="${levelClass}">${line.substring(24)}</span></span>`;
+                        logWrapper.appendChild(lineDiv);
+                    }
+                }
+            });
+
+            // Добавляем последний traceback если есть
+            if (currentTraceback) {
+                logWrapper.appendChild(currentTraceback);
+            }
+        }
+
+        function showError(message) {
+            const logWrapper = document.querySelector('.log-wrapper');
+            logWrapper.innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        function updateStats(data) {
+            const statsDiv = document.getElementById('stats');
+            const statsFilename = document.getElementById('stats-filename');
+            const statsTotal = document.getElementById('stats-total');
+            const statsReturned = document.getElementById('stats-returned');
+            const statsSize = document.getElementById('stats-size');
+
+            statsFilename.textContent = data.filename;
+            statsTotal.textContent = data.total_lines;
+            statsReturned.textContent = data.returned_lines;
+            statsSize.textContent = `${Math.round(data.size/1024)}KB`;
+
+            statsDiv.style.display = 'block';
+        }
+
+        function clearLogs() {
+            const logWrapper = document.querySelector('.log-wrapper');
+            logWrapper.innerHTML = '<div class="loading">Выберите лог файл для просмотра...</div>';
+            document.getElementById('stats').style.display = 'none';
+        }
+
+        // Обработчики для автоматической загрузки при изменении параметров
+        document.getElementById('log-file-select').addEventListener('change', loadLogs);
+        document.getElementById('log-level-select').addEventListener('change', loadLogs);
+        document.getElementById('log-lines-input').addEventListener('change', loadLogs);
+    </script>
+</body>
+</html>
